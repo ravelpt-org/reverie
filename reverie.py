@@ -55,7 +55,7 @@ def build(file):
         return True, None
 
 
-def write_multiple(process: subprocess.Popen, problem_in="", timeout=240):
+def write_multiple(process: subprocess.Popen, problem_in="", timeout=int(os.environ['TIMEOUT'])):
     try:
         stdout, stderr = process.communicate(problem_in, timeout=timeout)
     except subprocess.TimeoutExpired:
