@@ -9,7 +9,8 @@ i_import = re.compile('import (.*?$)', re.MULTILINE)
 python_allowed = ['math', 'strings', 'collections', 'datetime', 'itertools', 'heapq']
 # Using .* breaks this, also grabs ;
 # Import static fails this
-java_allowed = ['java.util', 'java.util.*;',  'java.lang.Math;', 'java.lang.Math.*;']
+java_allowed = ['java.util', 'java.util.*;', 'java.lang.Math;', 'java.lang.Math.*;']
+
 
 def is_clear(match_string, data, allowed):
     f = re.findall(match_string, data)
@@ -37,12 +38,10 @@ def check_java(file):
         data = f.read()
     return is_clear(i_import, data, java_allowed)
 
-prob_in = open("./sample_in.txt", "rb").read()
-prob_out = open("./sample_out.txt", "r").read().splitlines()
 
 def run(command):
     print(f"running {command}")
-    return subprocess.Popen(command, stdin=subprocess.PIPE, 
+    return subprocess.Popen(command, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
@@ -55,6 +54,7 @@ def build(file):
     else:
         return True, None
 
+
 def write_multiple(process: subprocess.Popen, problem_in="", timeout=240):
     try:
         stdout, stderr = process.communicate(problem_in, timeout=timeout)
@@ -62,13 +62,14 @@ def write_multiple(process: subprocess.Popen, problem_in="", timeout=240):
         return "", "Timelimit Exception"
     return stdout, stderr
 
+
 def finish(status):
-    with open("status.txt", 'w', encoding='utf-8') as f:
+    with open("./debussy/status.txt", 'w', encoding='utf-8') as f:
         f.write(status)
     sys.exit()
 
 
-def check(process, problem_in):
+def check(process, problem_in, problem_out):
     output, errors = write_multiple(process, problem_in)
 
     print("Looking for output:")
@@ -85,18 +86,22 @@ def check(process, problem_in):
     else:
         output = output.decode('utf-8').replace("\r", "").splitlines()
 
-    if output == prob_out:
+    if output == problem_out:
         finish("Correct")
     else:
         print(output)
-        print(prob_out)
+        print(problem_out)
         finish("Wrong")
 
         return False
 
-def main(problem_in):
-    if os.path.isfile("solution.java"):
-        file_path = "solution.java"
+
+def main():
+    problem_in = open(f"./debussy/input.txt", "rb").read()
+    problem_out = open(f"./debussy/output.txt", "r").read().splitlines()
+
+    if os.path.isfile("./debussy/solution.java"):
+        file_path = "./debussy/solution.java"
         if check_java(file_path):
             built, error = True, ""
 
@@ -110,8 +115,8 @@ def main(problem_in):
             print("File imports illegal libraries")
             finish("Illegal Import")
             return
-    elif os.path.isfile("solution.py"):
-        file_path = "solution.py"
+    elif os.path.isfile("./debussy/solution.py"):
+        file_path = "./debussy/solution.py"
         if check_python(file_path):
             command = ["python", file_path]
         else:
@@ -121,8 +126,9 @@ def main(problem_in):
     else:
         print("not a valid file")
         return
-    status = check(run(command), problem_in)
+    status = check(run(command), problem_in, problem_out)
     print(f"Solved: {status}")
-    print("Running")    
+    print("Running")
 
-main(prob_in)
+
+main()
